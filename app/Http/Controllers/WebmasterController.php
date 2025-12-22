@@ -38,9 +38,22 @@ class WebmasterController extends Controller
 
     public function subscribe(Request $request, Offer $offer)
     {
-        $data = $request->validate([
+        $validator = validator($request->all(), [
             'webmaster_cpc' => ['required', 'numeric', 'min:0'],
         ]);
+
+        if ($validator->fails()) {
+            if ($this->isAjax($request)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $validator->errors()->first(),
+                ], 422);
+            }
+
+            return back()->withErrors($validator)->withInput();
+        }
+
+        $data = $validator->validated();
 
         $subscription = Subscription::firstOrCreate(
             ['offer_id' => $offer->id, 'webmaster_id' => Auth::id()],
@@ -55,11 +68,20 @@ class WebmasterController extends Controller
             $subscription->update(['webmaster_cpc' => $data['webmaster_cpc'], 'is_active' => true]);
         }
 
-        if ($request->wantsJson()) {
-            return response()->json(['status' => 'ok', 'token' => $subscription->token]);
+        if ($this->isAjax($request)) {
+            return response()->json([
+                'status' => 'ok',
+                'offer_id' => $offer->id,
+                'message' => 'subscribed',
+            ]);
         }
 
         return redirect()->route('webmaster.offers')->with('status', 'Подписка оформлена.');
+    }
+
+    protected function isAjax(Request $request): bool
+    {
+        return $request->expectsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest';
     }
 
     public function unsubscribe(Subscription $subscription)
