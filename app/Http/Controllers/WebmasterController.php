@@ -25,6 +25,9 @@ class WebmasterController extends Controller
     {
         $offers = Offer::with('topics')
             ->where('status', '!=', Offer::STATUS_INACTIVE)
+            ->whereDoesntHave('subscriptions', function ($query) {
+                $query->where('webmaster_id', Auth::id());
+            })
             ->orderByDesc('created_at')
             ->get();
 
@@ -54,7 +57,7 @@ class WebmasterController extends Controller
             return response()->json(['status' => 'ok', 'token' => $subscription->token]);
         }
 
-        return redirect()->route('webmaster.subscriptions')->with('status', 'Подписка оформлена.');
+        return redirect()->route('webmaster.offers')->with('status', 'Подписка оформлена.');
     }
 
     public function unsubscribe(Subscription $subscription)
