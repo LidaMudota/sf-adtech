@@ -101,23 +101,21 @@ class WebmasterController extends Controller
         $this->authorizeSubscription($subscription);
 
         $periods = [
-            'day' => DB::raw('DATE(clicks.created_at)'),
-            'month' => DB::raw('DATE_FORMAT(clicks.created_at, "%Y-%m")'),
-            'year' => DB::raw('YEAR(clicks.created_at)'),
-        ];
+            'day' => 'DATE(clicks.created_at)',
+            'month' => 'DATE_FORMAT(clicks.created_at, "%Y-%m")',
+            'year' => 'YEAR(clicks.created_at)',
+        ];        
 
         $result = [];
 
         foreach ($periods as $key => $expression) {
             $rows = $subscription->clicks()
-                ->select(
-                    $expression . ' as label',
-                    DB::raw('COUNT(clicks.id) as clicks_count'),
-                    DB::raw('SUM(CASE WHEN clicks.is_successful = 1 THEN 1 ELSE 0 END) as redirects')
-                )
-                ->groupBy('label')
-                ->orderBy('label')
-                ->get();
+            ->selectRaw("$expression as label")
+            ->selectRaw('COUNT(clicks.id) as clicks_count')
+            ->selectRaw('SUM(CASE WHEN clicks.is_successful = 1 THEN 1 ELSE 0 END) as redirects')
+            ->groupBy('label')
+            ->orderBy('label')
+            ->get();                
 
             $result[$key] = $rows->map(function ($row) use ($subscription) {
                 $advertiserCost = $row->redirects * $subscription->offer->price_per_click;
