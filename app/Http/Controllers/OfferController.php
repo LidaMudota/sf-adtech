@@ -13,7 +13,9 @@ class OfferController extends Controller
 {
     public function index()
     {
-        $offers = Offer::withCount('subscriptions')
+        $offers = Offer::withCount([
+            'subscriptions as subscriptions_count' => fn ($query) => $query->where('is_active', true),
+        ])
             ->where('advertiser_id', Auth::id())
             ->orderByDesc('created_at')
             ->get();
