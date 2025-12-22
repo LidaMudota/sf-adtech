@@ -1,0 +1,52 @@
+version: '3.9'
+services:
+  app:
+    build: .
+    container_name: sf-adtech-app
+    image: sf-adtech-app
+    volumes:
+      - ./:/var/www/html
+      - storage_data:/var/www/html/storage
+      - cache_data:/var/www/html/bootstrap/cache
+    depends_on:
+      - mysql
+    environment:
+      - DB_HOST=mysql
+      - DB_DATABASE=sf_adtech
+      - DB_USERNAME=sf_adtech
+      - DB_PASSWORD=secret
+  mysql:
+    image: mysql:8.0
+    container_name: sf-adtech-mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: sf_adtech
+      MYSQL_USER: sf_adtech
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: secret
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+  nginx:
+    image: nginx:1.25
+    container_name: sf-adtech-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/var/www/html
+      - storage_data:/var/www/html/storage
+      - cache_data:/var/www/html/bootstrap/cache
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+  node:
+    image: node:20
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    command: ["npm","run","build"]
+volumes:
+  db_data:
+  storage_data:
+  cache_data:
