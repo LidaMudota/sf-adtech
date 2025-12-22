@@ -95,7 +95,7 @@ class WebmasterController extends Controller
         DB::transaction(function () use ($subscription) {
             $subscription->offer()->lockForUpdate()->first();
 
-            $subscription->delete();
+            $subscription->update(['is_active' => false]);
         });
 
         return back()->with('status', 'Подписка отключена.');
