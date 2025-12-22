@@ -15,6 +15,7 @@ class WebmasterController extends Controller
     {
         $subs = Subscription::with('offer')
             ->where('webmaster_id', Auth::id())
+            ->where('is_active', true)
             ->orderByDesc('created_at')
             ->get();
 
@@ -26,7 +27,8 @@ class WebmasterController extends Controller
         $offers = Offer::with('topics')
             ->where('status', '!=', Offer::STATUS_INACTIVE)
             ->whereDoesntHave('subscriptions', function ($query) {
-                $query->where('webmaster_id', Auth::id());
+                $query->where('webmaster_id', Auth::id())
+                    ->where('is_active', true);
             })
             ->orderByDesc('created_at')
             ->get();
@@ -63,8 +65,13 @@ class WebmasterController extends Controller
     public function unsubscribe(Subscription $subscription)
     {
         $this->authorizeSubscription($subscription);
-        $subscription->update(['is_active' => false]);
-        return back()->with('status', 'Подписка отключена.');
+
+        if ($subscription->is_active) {
+            $subscription->update(['is_active' => false]);
+            return back()->with('status', 'Подписка отключена.');
+        }
+
+        return back();
     }
 
     public function stats(Subscription $subscription)
