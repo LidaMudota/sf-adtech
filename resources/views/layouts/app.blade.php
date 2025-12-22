@@ -12,6 +12,11 @@
     </style>
 </head>
 <body>
+<noscript>
+    <div class="alert alert-warning m-3">
+        Для работы всех функций включите JavaScript. Базовые действия доступны и без него.
+    </div>
+</noscript>
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
     <div class="container-fluid">
         <a class="navbar-brand" href="{{ route('dashboard') }}">SF AdTech</a>

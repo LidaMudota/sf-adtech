@@ -34,32 +34,31 @@ class AdminController extends Controller
     public function stats()
     {
         $periods = [
-            'day' => DB::raw('DATE(created_at)'),
-            'month' => DB::raw('DATE_FORMAT(created_at, "%Y-%m")'),
-            'year' => DB::raw('YEAR(created_at)'),
+            'day'   => 'DATE(created_at)',
+            'month' => 'DATE_FORMAT(created_at, "%Y-%m")',
+            'year'  => 'YEAR(created_at)',
         ];
-
+    
         $clickStats = [];
-
+    
         foreach ($periods as $key => $expression) {
-            $rows = Click::select(
-                $expression . ' as label',
-                DB::raw('SUM(CASE WHEN is_successful = 1 THEN 1 ELSE 0 END) as successful'),
-                DB::raw('SUM(CASE WHEN is_successful = 0 THEN 1 ELSE 0 END) as failed')
-            )
+            $rows = Click::selectRaw("$expression as label")
+                ->addSelect(
+                    DB::raw('SUM(CASE WHEN is_successful = 1 THEN 1 ELSE 0 END) as successful'),
+                    DB::raw('SUM(CASE WHEN is_successful = 0 THEN 1 ELSE 0 END) as failed')
+                )
                 ->groupBy('label')
                 ->orderBy('label')
                 ->get();
-
+    
             $clickStats[$key] = $rows;
         }
-
+    
         $income = $this->calculateIncome();
-
         $subscriptions = Subscription::with('offer', 'webmaster')->latest()->take(20)->get();
-
+    
         return view('admin.stats', compact('clickStats', 'income', 'subscriptions'));
-    }
+    }    
 
     protected function calculateIncome(): array
     {
