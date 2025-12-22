@@ -34,10 +34,13 @@
             </td>
             <td>{{ $offer->subscriptions_count }}</td>
             <td>
-                <form method="POST" action="{{ route('offers.deactivate', $offer) }}" onsubmit="return confirm('Деактивировать?')">
-                    @csrf
-                    <button class="btn btn-sm btn-danger">Деактивировать</button>
-                </form>
+                <div class="d-flex gap-2">
+                    <a href="{{ route('offers.show', $offer) }}" class="btn btn-sm btn-outline-secondary">Статистика</a>
+                    <form method="POST" action="{{ route('offers.deactivate', $offer) }}" onsubmit="return confirm('Деактивировать?')">
+                        @csrf
+                        <button class="btn btn-sm btn-danger">Деактивировать</button>
+                    </form>
+                </div>
             </td>
         </tr>
     @endforeach
