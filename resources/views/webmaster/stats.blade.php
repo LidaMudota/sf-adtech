@@ -1,26 +1,45 @@
 @extends('layouts.app')
 @section('content')
+<style>
+  .table thead th { vertical-align: middle; white-space: nowrap; }
+  .table td { white-space: nowrap; }
+</style>
 <h4 class="mb-3">Статистика по {{ $subscription->offer->name }}</h4>
-<div class="mb-3">Ссылка: <code>{{ url('/r/' . $subscription->token) }}</code></div>
+<div class="mb-3">Ссылка: <a href="{{ url('/r/' . $subscription->token) }}">{{ url('/r/' . $subscription->token) }}</a></div>
 <div class="row">
     @foreach($stats as $period => $rows)
         <div class="col-md-4">
             <div class="card mb-3">
                 <div class="card-header text-capitalize">{{ $period }}</div>
-                <div class="card-body">
-                    <table class="table table-sm">
-                        <thead><tr><th>Период</th><th>Клики</th><th>Редиректы</th><th>Расход РК</th><th>Доход ВМ</th><th>Система</th></tr></thead>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th rowspan="2" class="align-middle">Период</th>
+                                <th rowspan="2" class="align-middle text-center">Клики</th>
+                                <th rowspan="2" class="align-middle text-center split-right">Редиректы</th>
+
+                                <th colspan="1" class="text-center split-right">Расход</th>
+                                <th colspan="2" class="text-center">Доход</th>
+                            </tr>
+                            <tr>
+                                <th class="text-center split-right">РК</th>
+                                <th class="text-center">ВМ</th>
+                                <th class="text-center">Система</th>
+                            </tr>
+                        </thead>
                         <tbody>
-                        @foreach($rows as $row)
+                            @foreach($rows as $row)
                             <tr>
                                 <td>{{ $row['label'] }}</td>
-                                <td>{{ $row['clicks'] }}</td>
-                                <td>{{ $row['redirects'] }}</td>
-                                <td>{{ $row['advertiser_cost'] }}</td>
-                                <td>{{ $row['webmaster_income'] }}</td>
-                                <td>{{ $row['system_income'] }}</td>
+                                <td class="text-end">{{ $row['clicks'] }}</td>
+                                <td class="text-end split-right">{{ $row['redirects'] }}</td>
+
+                                <td class="text-end split-right">{{ $row['advertiser_cost'] }}</td>
+                                <td class="text-end">{{ $row['webmaster_income'] }}</td>
+                                <td class="text-end">{{ $row['system_income'] }}</td>
                             </tr>
-                        @endforeach
+                            @endforeach
                         </tbody>
                     </table>
                 </div>

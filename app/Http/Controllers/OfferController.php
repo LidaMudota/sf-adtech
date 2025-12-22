@@ -107,28 +107,28 @@ class OfferController extends Controller
     protected function buildStats(int $offerId): array
     {
         $periods = [
-            'day' => DB::raw('DATE(clicks.created_at)'),
-            'month' => DB::raw('DATE_FORMAT(clicks.created_at, "%Y-%m")'),
-            'year' => DB::raw('YEAR(clicks.created_at)'),
+            'day' => 'DATE(clicks.created_at)',
+            'month' => 'DATE_FORMAT(clicks.created_at, "%Y-%m")',
+            'year' => 'YEAR(clicks.created_at)',
         ];
-
+    
         $result = [];
-
+    
         foreach ($periods as $key => $expression) {
-            $rows = Subscription::where('offer_id', $offerId)
+            $rows = Subscription::where('subscriptions.offer_id', $offerId)
                 ->join('clicks', 'clicks.subscription_id', '=', 'subscriptions.id')
-                ->select(
-                    $expression . ' as label',
+                ->join('offers', 'offers.id', '=', 'subscriptions.offer_id')
+                ->selectRaw("$expression as label")
+                ->addSelect([
                     DB::raw('COUNT(clicks.id) as clicks_count'),
                     DB::raw('SUM(CASE WHEN clicks.is_successful = 1 THEN 1 ELSE 0 END) as redirects'),
-                    DB::raw('SUM(CASE WHEN clicks.is_successful = 1 THEN 1 ELSE 0 END) * offers.price_per_click as advertiser_cost'),
-                    DB::raw('SUM(CASE WHEN clicks.is_successful = 1 THEN 1 ELSE 0 END) * subscriptions.webmaster_cpc as webmaster_income')
-                )
-                ->join('offers', 'offers.id', '=', 'subscriptions.offer_id')
-                ->groupBy('label', 'offers.price_per_click')
+                    DB::raw('SUM(CASE WHEN clicks.is_successful = 1 THEN offers.price_per_click ELSE 0 END) as advertiser_cost'),
+                    DB::raw('SUM(CASE WHEN clicks.is_successful = 1 THEN subscriptions.webmaster_cpc ELSE 0 END) as webmaster_income'),
+                ])
+                ->groupBy('label')
                 ->orderBy('label')
                 ->get();
-
+    
             $result[$key] = $rows->map(function ($row) {
                 $systemIncome = $row->advertiser_cost * config('adtech.system_commission_rate');
                 return [
@@ -141,7 +141,7 @@ class OfferController extends Controller
                 ];
             });
         }
-
+    
         return $result;
-    }
+    }    
 }
