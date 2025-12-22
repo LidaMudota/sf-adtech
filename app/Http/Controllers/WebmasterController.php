@@ -88,12 +88,17 @@ class WebmasterController extends Controller
     {
         $this->authorizeSubscription($subscription);
 
-        if ($subscription->is_active) {
-            $subscription->update(['is_active' => false]);
-            return back()->with('status', 'Подписка отключена.');
+        if (!$subscription->is_active) {
+            return back();
         }
 
-        return back();
+        DB::transaction(function () use ($subscription) {
+            $subscription->offer()->lockForUpdate()->first();
+
+            $subscription->delete();
+        });
+
+        return back()->with('status', 'Подписка отключена.');
     }
 
     public function stats(Subscription $subscription)
