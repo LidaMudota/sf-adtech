@@ -115,12 +115,12 @@ class WebmasterController extends Controller
 
         foreach ($periods as $key => $expression) {
             $rows = $subscription->clicks()
-            ->selectRaw("$expression as label")
-            ->selectRaw('COUNT(clicks.id) as clicks_count')
-            ->selectRaw('SUM(CASE WHEN clicks.is_successful = 1 THEN 1 ELSE 0 END) as redirects')
-            ->groupBy('label')
-            ->orderBy('label')
-            ->get();                
+                ->selectRaw("$expression as label")
+                ->selectRaw('COUNT(clicks.id) as clicks_count')
+                ->selectRaw('SUM(CASE WHEN clicks.is_successful = 1 THEN 1 ELSE 0 END) as redirects')
+                ->groupBy('label')
+                ->orderBy('label')
+                ->get();
 
             $result[$key] = $rows->map(function ($row) use ($subscription) {
                 $advertiserCost = $row->redirects * $subscription->offer->price_per_click;
