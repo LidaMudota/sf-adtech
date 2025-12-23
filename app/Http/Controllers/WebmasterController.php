@@ -72,6 +72,7 @@ class WebmasterController extends Controller
             return response()->json([
                 'status' => 'ok',
                 'offer_id' => $offer->id,
+                'subscription_id' => $subscription->id,
                 'message' => 'subscribed',
             ]);
         }
@@ -97,6 +98,13 @@ class WebmasterController extends Controller
 
             $subscription->update(['is_active' => false]);
         });
+
+        if (request()->expectsJson()) {
+            return response()->json([
+                'ok' => true,
+                'subscription_id' => $subscription->id,
+            ]);
+        }
 
         return back()->with('status', 'Подписка отключена.');
     }

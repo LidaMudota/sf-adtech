@@ -66,11 +66,15 @@
         </div>
     @endif
 
+    <div class="alert alert-danger d-none" data-error-box></div>
+    <div class="alert alert-success d-none" data-flash-box></div>
+
     @yield('content')
 </div>
 <script>
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 </script>
+<script src="{{ asset('js/offer-sync.js') }}" defer></script>
 @yield('scripts')
 </body>
 </html>

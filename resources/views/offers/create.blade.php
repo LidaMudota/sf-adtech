@@ -3,7 +3,9 @@
 <div class="card">
     <div class="card-header">Новый оффер</div>
     <div class="card-body">
-        <form method="POST" action="{{ route('offers.store') }}" novalidate>
+        <div class="alert alert-danger d-none" data-form-errors></div>
+        <div class="alert alert-success d-none" data-form-success></div>
+        <form method="POST" action="{{ route('offers.store') }}" novalidate data-async="true" data-action="offer-create">
             @csrf
             <div class="mb-3">
                 <label class="form-label">Имя</label>

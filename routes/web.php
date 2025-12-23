@@ -28,6 +28,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/offers', [OfferController::class, 'index'])->name('offers.index');
         Route::get('/offers/create', [OfferController::class, 'create'])->name('offers.create');
         Route::post('/offers', [OfferController::class, 'store'])->name('offers.store');
+        Route::get('/offers/json', [OfferController::class, 'jsonList'])->name('offers.json');
+        Route::get('/offers/{offer}/json', [OfferController::class, 'jsonShow'])->name('offers.json.show');
         Route::get('/offers/kanban', [OfferController::class, 'kanban'])->name('offers.kanban');
         Route::post('/offers/{offer}/status', [OfferController::class, 'updateStatus'])->name('offers.status');
         Route::get('/offers/{offer}', [OfferController::class, 'show'])->name('offers.show');

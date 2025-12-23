@@ -4,7 +4,8 @@
     <h4>Мои офферы</h4>
     <a href="{{ route('offers.create') }}" class="btn btn-primary">Создать</a>
 </div>
-<table class="table table-bordered align-middle">
+<div class="alert alert-info d-none" data-inline-flash></div>
+<table class="table table-bordered align-middle" data-offers-table data-show-base="{{ url('/offers') }}" data-status-base="{{ url('/offers') }}" data-deactivate-base="{{ url('/offers') }}">
     <thead>
     <tr>
         <th>Имя</th>
@@ -15,14 +16,14 @@
         <th>Действия</th>
     </tr>
     </thead>
-    <tbody>
+    <tbody data-offers-body>
     @foreach($offers as $offer)
-        <tr>
+        <tr data-entity="offer" data-id="{{ $offer->id }}">
             <td><a href="{{ route('offers.show', $offer) }}">{{ $offer->name }}</a></td>
             <td>{{ $offer->price_per_click }}</td>
             <td>{{ $offer->target_url }}</td>
             <td>
-                <form method="POST" action="{{ route('offers.status', $offer) }}" class="d-flex gap-2 align-items-center">
+                <form method="POST" action="{{ route('offers.status', $offer) }}" class="d-flex gap-2 align-items-center" data-async="true" data-action="offer-status">
                     @csrf
                     <select name="status" class="form-select form-select-sm">
                         <option value="draft" @selected($offer->status==='draft')>draft</option>
@@ -36,7 +37,7 @@
             <td>
                 <div class="d-flex gap-2">
                     <a href="{{ route('offers.show', $offer) }}" class="btn btn-sm btn-outline-secondary">Статистика</a>
-                    <form method="POST" action="{{ route('offers.deactivate', $offer) }}" onsubmit="return confirm('Деактивировать?')">
+                    <form method="POST" action="{{ route('offers.deactivate', $offer) }}" data-async="true" data-action="offer-deactivate" data-confirm="Деактивировать?">
                         @csrf
                         <button class="btn btn-sm btn-danger">Деактивировать</button>
                     </form>

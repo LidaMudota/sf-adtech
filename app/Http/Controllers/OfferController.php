@@ -50,6 +50,17 @@ class OfferController extends Controller
 
         $offer->topics()->sync($data['topics'] ?? []);
 
+        if ($request->expectsJson()) {
+            $offer->loadCount([
+                'subscriptions as subscriptions_count' => fn ($query) => $query->where('is_active', true),
+            ])->load('topics');
+
+            return response()->json([
+                'status' => 'ok',
+                'offer' => $this->serializeOffer($offer),
+            ], 201);
+        }
+
         return redirect()->route('offers.index')->with('status', 'Оффер создан.');
     }
 
@@ -63,8 +74,15 @@ class OfferController extends Controller
 
         $offer->update(['status' => $data['status']]);
 
-        if ($request->wantsJson()) {
-            return response()->json(['status' => 'ok']);
+        if ($request->expectsJson()) {
+            $offer->loadCount([
+                'subscriptions as subscriptions_count' => fn ($query) => $query->where('is_active', true),
+            ]);
+
+            return response()->json([
+                'status' => 'ok',
+                'offer' => $this->serializeOffer($offer),
+            ]);
         }
 
         return back()->with('status', 'Статус обновлен.');
@@ -96,7 +114,40 @@ class OfferController extends Controller
     {
         $this->authorizeOffer($offer);
         $offer->update(['status' => Offer::STATUS_INACTIVE]);
+
+        if (request()->expectsJson()) {
+            return response()->json(['ok' => true, 'id' => $offer->id]);
+        }
+
         return back()->with('status', 'Оффер деактивирован.');
+    }
+
+    public function jsonShow(Offer $offer)
+    {
+        $this->authorizeOffer($offer);
+
+        $offer->loadCount([
+            'subscriptions as subscriptions_count' => fn ($query) => $query->where('is_active', true),
+        ])->load('topics');
+
+        return response()->json([
+            'offer' => $this->serializeOffer($offer),
+        ]);
+    }
+
+    public function jsonList(Request $request)
+    {
+        $offers = Offer::withCount([
+            'subscriptions as subscriptions_count' => fn ($query) => $query->where('is_active', true),
+        ])
+            ->where('advertiser_id', Auth::id())
+            ->orderByDesc('created_at')
+            ->limit(50)
+            ->get();
+
+        return response()->json([
+            'offers' => $offers->map(fn ($offer) => $this->serializeOffer($offer)),
+        ]);
     }
 
     protected function authorizeOffer(Offer $offer): void
@@ -145,5 +196,18 @@ class OfferController extends Controller
         }
     
         return $result;
-    }    
+    }
+
+    private function serializeOffer(Offer $offer): array
+    {
+        return [
+            'id' => $offer->id,
+            'name' => $offer->name,
+            'price_per_click' => (float) $offer->price_per_click,
+            'target_url' => $offer->target_url,
+            'status' => $offer->status,
+            'subscriptions_count' => (int) ($offer->subscriptions_count ?? 0),
+            'topics' => $offer->topics?->pluck('name')->all() ?? [],
+        ];
+    }
 }
